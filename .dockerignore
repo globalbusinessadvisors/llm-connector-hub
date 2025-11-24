@@ -1,0 +1,101 @@
+# Dependencies
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Build outputs
+dist
+build
+coverage
+*.tsbuildinfo
+.turbo
+
+# Testing
+.nyc_output
+*.lcov
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Environment
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+.env.*.local
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# CI/CD
+.github
+.gitlab-ci.yml
+.travis.yml
+.circleci
+
+# Documentation
+*.md
+!README.md
+docs
+examples
+
+# Logs
+logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Kubernetes
+deployment
+
+# Scripts (unless needed)
+scripts
+
+# Test files
+**/*.test.ts
+**/*.spec.ts
+**/__tests__
+**/__mocks__
+*.test.js
+*.spec.js
+
+# Configuration files not needed in production
+.eslintrc*
+.prettierrc*
+.editorconfig
+tsconfig.json
+vitest.config.*
+jest.config.*
+
+# Temporary files
+tmp
+temp
+*.tmp
+
+# Cache
+.cache
+.parcel-cache
+.next
+
+# Misc
+*.bak
+*.orig

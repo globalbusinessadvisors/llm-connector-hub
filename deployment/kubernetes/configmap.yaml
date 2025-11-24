@@ -1,0 +1,113 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: llm-connector-hub-config
+  namespace: llm-connector-hub
+  labels:
+    app: llm-connector-hub
+data:
+  NODE_ENV: "production"
+  PORT: "8080"
+  LOG_LEVEL: "info"
+  LOG_FORMAT: "json"
+
+  # Redis configuration
+  REDIS_URL: "redis://llm-redis:6379"
+  REDIS_MAX_RETRIES: "3"
+  REDIS_RETRY_DELAY: "1000"
+
+  # Cache configuration
+  CACHE_ENABLED: "true"
+  CACHE_TTL: "3600"
+  CACHE_MAX_SIZE: "1000"
+
+  # Rate limiting
+  RATE_LIMIT_ENABLED: "true"
+  RATE_LIMIT_WINDOW_MS: "60000"
+  RATE_LIMIT_MAX_REQUESTS: "100"
+
+  # Timeout configuration
+  REQUEST_TIMEOUT_MS: "30000"
+  PROVIDER_TIMEOUT_MS: "60000"
+
+  # Retry configuration
+  MAX_RETRIES: "3"
+  RETRY_DELAY_MS: "1000"
+  RETRY_BACKOFF_MULTIPLIER: "2"
+
+  # Metrics
+  METRICS_ENABLED: "true"
+  METRICS_PORT: "9090"
+
+  # Health check
+  HEALTH_CHECK_INTERVAL_MS: "30000"
+
+  # Provider configuration
+  OPENAI_BASE_URL: "https://api.openai.com/v1"
+  ANTHROPIC_BASE_URL: "https://api.anthropic.com/v1"
+
+  # Feature flags
+  ENABLE_STREAMING: "true"
+  ENABLE_FUNCTION_CALLING: "true"
+  ENABLE_VISION: "true"
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: llm-connector-hub-nginx-config
+  namespace: llm-connector-hub
+  labels:
+    app: llm-connector-hub
+data:
+  nginx.conf: |
+    user nginx;
+    worker_processes auto;
+    error_log /var/log/nginx/error.log warn;
+    pid /var/run/nginx.pid;
+
+    events {
+      worker_connections 1024;
+    }
+
+    http {
+      include /etc/nginx/mime.types;
+      default_type application/octet-stream;
+
+      log_format main '$remote_addr - $remote_user [$time_local] "$request" '
+                      '$status $body_bytes_sent "$http_referer" '
+                      '"$http_user_agent" "$http_x_forwarded_for"';
+
+      access_log /var/log/nginx/access.log main;
+
+      sendfile on;
+      tcp_nopush on;
+      keepalive_timeout 65;
+      gzip on;
+
+      upstream llm_connector_hub {
+        server llm-connector-hub:8080;
+      }
+
+      server {
+        listen 80;
+        server_name _;
+
+        location / {
+          proxy_pass http://llm_connector_hub;
+          proxy_http_version 1.1;
+          proxy_set_header Upgrade $http_upgrade;
+          proxy_set_header Connection 'upgrade';
+          proxy_set_header Host $host;
+          proxy_cache_bypass $http_upgrade;
+          proxy_set_header X-Real-IP $remote_addr;
+          proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+          proxy_set_header X-Forwarded-Proto $scheme;
+        }
+
+        location /health {
+          access_log off;
+          proxy_pass http://llm_connector_hub/health;
+        }
+      }
+    }

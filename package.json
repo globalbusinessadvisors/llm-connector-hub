@@ -1,0 +1,66 @@
+{
+  "name": "llm-connector-hub",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A unified TypeScript framework for interfacing with multiple Large Language Model providers",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "test": "vitest",
+    "test:coverage": "vitest --coverage",
+    "lint": "eslint . --ext .ts",
+    "lint:fix": "eslint . --ext .ts --fix",
+    "format": "prettier --write \"**/*.{ts,json,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,json,md}\"",
+    "typecheck": "tsc --noEmit",
+    "clean": "npm run clean --workspaces --if-present && rm -rf node_modules",
+    "bench": "node --expose-gc ./node_modules/.bin/tsx benchmarks/index.ts",
+    "bench:provider": "node --expose-gc ./node_modules/.bin/tsx benchmarks/provider-benchmark.ts",
+    "bench:cache": "node --expose-gc ./node_modules/.bin/tsx benchmarks/cache-benchmark.ts",
+    "bench:middleware": "node --expose-gc ./node_modules/.bin/tsx benchmarks/middleware-benchmark.ts",
+    "bench:hub": "node --expose-gc ./node_modules/.bin/tsx benchmarks/hub-benchmark.ts",
+    "bench:stress": "node --expose-gc ./node_modules/.bin/tsx benchmarks/stress-test.ts",
+    "bench:load": "node --expose-gc ./node_modules/.bin/tsx benchmarks/load-test.ts",
+    "bench:all": "npm run bench && npm run bench:stress && npm run bench:load",
+    "bench:save": "npm run bench -- all --save",
+    "bench:analyze": "tsx scripts/performance/analyze-results.ts",
+    "perf": "bash scripts/performance/run-benchmarks.sh",
+    "perf:load": "bash scripts/performance/run-load-tests.sh"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@typescript-eslint/eslint-plugin": "^6.15.0",
+    "@typescript-eslint/parser": "^6.15.0",
+    "@vitest/coverage-v8": "^1.0.0",
+    "eslint": "^8.56.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-import": "^2.29.1",
+    "prettier": "^3.1.1",
+    "tsx": "^4.20.6",
+    "typescript": "^5.3.3",
+    "vitest": "^1.0.0"
+  },
+  "dependencies": {
+    "claude-flow": "^2.7.31"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/llm-connector-hub"
+  },
+  "keywords": [
+    "llm",
+    "openai",
+    "anthropic",
+    "ai",
+    "connector",
+    "typescript"
+  ],
+  "author": "",
+  "license": "MIT OR Apache-2.0"
+}

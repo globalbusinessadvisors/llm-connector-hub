@@ -1,0 +1,42 @@
+{
+  "name": "@llm-connector-hub/middleware",
+  "version": "0.1.0",
+  "description": "Middleware components for request/response processing",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -b",
+    "clean": "rm -rf dist *.tsbuildinfo",
+    "test": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "llm",
+    "middleware",
+    "retry",
+    "cache",
+    "rate-limit"
+  ],
+  "license": "MIT OR Apache-2.0",
+  "dependencies": {
+    "@llm-connector-hub/core": "^0.1.0",
+    "pino": "^8.16.2",
+    "prom-client": "^15.1.0",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "typescript": "^5.3.3",
+    "vitest": "^1.0.0"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  }
+}

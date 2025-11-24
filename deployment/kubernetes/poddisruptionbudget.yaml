@@ -1,0 +1,27 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: llm-connector-hub-pdb
+  namespace: llm-connector-hub
+  labels:
+    app: llm-connector-hub
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: llm-connector-hub
+  unhealthyPodEvictionPolicy: AlwaysAllow
+
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: llm-redis-pdb
+  namespace: llm-connector-hub
+  labels:
+    app: llm-redis
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: llm-redis
