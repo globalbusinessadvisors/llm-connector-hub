@@ -14,12 +14,12 @@
 
 ## 🎯 Overview
 
-LLM Connector Hub provides a **unified, type-safe interface** for interacting with multiple Large Language Model providers (OpenAI, Anthropic, Google AI). Built with TypeScript and Node.js, it offers enterprise-grade features including smart provider selection, automatic failover, response caching, and comprehensive observability.
+LLM Connector Hub provides a **unified, type-safe interface** for interacting with multiple Large Language Model providers (OpenAI, Anthropic, Google AI, Azure OpenAI, AWS Bedrock). Built with TypeScript and Node.js, it offers enterprise-grade features including smart provider selection, automatic failover, response caching, and comprehensive observability.
 
 ### Key Highlights
 
 - 🚀 **Exceptional Performance**: Sub-microsecond overhead (<2μs), 46K ops/s throughput
-- 🔄 **Multi-Provider Support**: OpenAI, Anthropic (Claude), Google AI (Gemini)
+- 🔄 **Multi-Provider Support**: OpenAI (GPT-5, GPT-4o), Anthropic (Claude), Google AI (Gemini), Azure OpenAI, AWS Bedrock
 - 🛡️ **Production-Ready**: 96.3% test coverage, zero compilation errors
 - 💰 **Cost-Effective**: 70-90% API cost reduction via intelligent caching
 - 📊 **Enterprise-Grade**: Full observability, monitoring, and deployment automation
@@ -104,7 +104,7 @@ npm install -g @llm-dev-ops/connector-hub-cli
 | Package | Description | Install Command |
 |---------|-------------|-----------------|
 | **@llm-dev-ops/connector-hub-core** | Core interfaces and types | `npm install @llm-dev-ops/connector-hub-core` |
-| **@llm-dev-ops/connector-hub-providers** | Anthropic & Google AI providers | `npm install @llm-dev-ops/connector-hub-providers` |
+| **@llm-dev-ops/connector-hub-providers** | All provider implementations | `npm install @llm-dev-ops/connector-hub-providers` |
 | **@llm-dev-ops/connector-hub-middleware** | Middleware components | `npm install @llm-dev-ops/connector-hub-middleware` |
 | **@llm-dev-ops/connector-hub** | Complete orchestration layer | `npm install @llm-dev-ops/connector-hub` |
 | **@llm-dev-ops/connector-hub-cli** | Command-line interface | `npm install -g @llm-dev-ops/connector-hub-cli` |
@@ -138,12 +138,119 @@ const response = await hub.complete({
 console.log(response.message.content);
 ```
 
+### OpenAI Usage (GPT-5 & GPT-4o)
+
+```typescript
+import { ConnectorHub } from '@llm-dev-ops/connector-hub';
+import { OpenAI } from '@llm-dev-ops/connector-hub-providers';
+
+const hub = new ConnectorHub({
+  providers: {
+    openai: OpenAI.createOpenAIProvider({
+      apiKey: process.env.OPENAI_API_KEY!,
+    }),
+  },
+});
+
+// Use GPT-5 (latest flagship model)
+const response = await hub.complete({
+  model: 'gpt-5',
+  messages: [{ role: 'user', content: 'Explain machine learning.' }],
+  temperature: 0.7,
+  max_tokens: 1000,
+});
+
+// Use GPT-4o (fast multimodal model)
+const visionResponse = await hub.complete({
+  model: 'gpt-4o',
+  messages: [{
+    role: 'user',
+    content: [
+      { type: 'text', text: 'What is in this image?' },
+      { type: 'image_url', image_url: 'https://example.com/image.jpg' },
+    ],
+  }],
+});
+```
+
+### Azure OpenAI with Deployment Names
+
+```typescript
+import { ConnectorHub } from '@llm-dev-ops/connector-hub';
+import { Azure } from '@llm-dev-ops/connector-hub-providers';
+
+const hub = new ConnectorHub({
+  providers: {
+    azure: Azure.createAzureProvider({
+      apiKey: process.env.AZURE_OPENAI_API_KEY!,
+      resourceName: 'your-resource-name',
+      deploymentName: 'gpt-4o-deployment', // Your Azure deployment name
+    }),
+  },
+});
+
+// Use your Azure OpenAI deployment
+const response = await hub.complete({
+  model: 'gpt-4o', // Model ID (deployment handles the routing)
+  messages: [{ role: 'user', content: 'Hello, Azure OpenAI!' }],
+});
+
+// Alternative: Use endpoint URL directly
+const hubWithEndpoint = new ConnectorHub({
+  providers: {
+    azure: Azure.createAzureProvider({
+      apiKey: process.env.AZURE_OPENAI_API_KEY!,
+      endpoint: 'https://your-resource.openai.azure.com',
+      deploymentName: 'gpt-4o-deployment',
+    }),
+  },
+});
+```
+
+### AWS Bedrock with Multiple Models
+
+```typescript
+import { ConnectorHub } from '@llm-dev-ops/connector-hub';
+import { Bedrock } from '@llm-dev-ops/connector-hub-providers';
+
+const hub = new ConnectorHub({
+  providers: {
+    bedrock: Bedrock.createBedrockProvider({
+      region: 'us-east-1',
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+    }),
+  },
+});
+
+// Use Claude 3.5 Sonnet on Bedrock
+const claudeResponse = await hub.complete({
+  model: 'anthropic.claude-3-5-sonnet-20241022-v2:0',
+  messages: [{ role: 'user', content: 'Explain AWS Bedrock.' }],
+  max_tokens: 1000,
+});
+
+// Use Llama 3.3 70B on Bedrock
+const llamaResponse = await hub.complete({
+  model: 'meta.llama3-3-70b-instruct-v1:0',
+  messages: [{ role: 'user', content: 'Tell me about Llama models.' }],
+  max_tokens: 1000,
+});
+
+// Use Llama 3.1 405B (largest model)
+const llama405BResponse = await hub.complete({
+  model: 'meta.llama3-1-405b-instruct-v1:0',
+  messages: [{ role: 'user', content: 'Solve this complex problem...' }],
+  max_tokens: 2000,
+});
+```
+
 ### Streaming Example
 
 ```typescript
-// Stream tokens as they arrive
+// Stream tokens as they arrive (works with all providers)
 for await (const chunk of hub.stream({
-  model: 'gpt-4',
+  model: 'gpt-4o',
   messages: [{ role: 'user', content: 'Tell me a story.' }],
 })) {
   if (chunk.content) {
@@ -155,21 +262,22 @@ for await (const chunk of hub.stream({
 ### Multi-Provider with Failover
 
 ```typescript
-import { Anthropic, Google } from '@llm-dev-ops/connector-hub-providers';
+import { Anthropic, Google, OpenAI } from '@llm-dev-ops/connector-hub-providers';
 
 const hub = new ConnectorHub({
   providers: {
+    openai: OpenAI.createOpenAIProvider({ apiKey: process.env.OPENAI_API_KEY! }),
     anthropic: Anthropic.createAnthropicProvider({ apiKey: process.env.ANTHROPIC_API_KEY! }),
     google: Google.createGoogleProvider({ apiKey: process.env.GOOGLE_API_KEY! }),
   },
   selector: {
     type: 'failover',
-    primary: 'anthropic',
-    fallback: 'google',
+    primary: 'openai',
+    fallback: 'anthropic',
   },
 });
 
-// Automatically fails over to Google if Anthropic is unavailable
+// Automatically fails over to Anthropic if OpenAI is unavailable
 const response = await hub.complete(request);
 ```
 
@@ -177,62 +285,69 @@ const response = await hub.complete(request);
 
 ## 📦 Supported Providers
 
-| Provider | Status | Streaming | Function Calling | Vision | Performance |
-|----------|--------|-----------|------------------|--------|-------------|
-| **Anthropic** | ✅ Production | ✅ | ✅ | ✅ | 1.18μs (860K ops/s) |
-| **Google AI** | ✅ Production | ✅ | ✅ | ✅ | 1.28μs (993K ops/s) |
-| OpenAI | 🔜 Planned | - | - | - | - |
-| AWS Bedrock | 🔜 Planned | - | - | - | - |
-| Azure OpenAI | 🔜 Planned | - | - | - | - |
+| Provider | Status | Streaming | Function Calling | Vision | Models |
+|----------|--------|-----------|------------------|--------|--------|
+| **OpenAI** | ✅ Production | ✅ | ✅ | ✅ | GPT-5, GPT-5.1, GPT-4o, GPT-4o-mini, GPT-4 Turbo |
+| **Anthropic** | ✅ Production | ✅ | ✅ | ✅ | Claude 3.5 Sonnet, Claude 3 Opus/Sonnet/Haiku |
+| **Google AI** | ✅ Production | ✅ | ✅ | ✅ | Gemini 1.5 Pro/Flash, Gemini 1.0 Pro |
+| **AWS Bedrock** | ✅ Production | ✅ | ✅ | ✅ | Claude 3.5, Llama 3.3/3.1, Titan, Command |
+| **Azure OpenAI** | ✅ Production | ✅ | ✅ | ✅ | GPT-5, GPT-4o, GPT-4 Turbo (via deployments) |
 
 ---
 
 ## 🏗️ Architecture
 
 ```
-┌─────────────────────────────────────────────┐
-│           Application Layer                 │
-│     (Your Application Code)                 │
-└────────────────┬────────────────────────────┘
-                 │
-┌────────────────▼────────────────────────────┐
-│         ConnectorHub (Orchestrator)         │
-│  ┌────────────────────────────────────┐    │
-│  │  Middleware Pipeline               │    │
-│  │  • Retry (exponential backoff)     │    │
-│  │  • Rate Limiting (token bucket)    │    │
-│  │  • Circuit Breaker (3-state)       │    │
-│  │  • Logging (structured)            │    │
-│  │  • Metrics (Prometheus)            │    │
-│  └────────────┬───────────────────────┘    │
-│               │                             │
-│  ┌────────────▼───────────────────────┐    │
-│  │  Provider Registry                 │    │
-│  │  • Smart Selection (6 strategies)  │    │
-│  │  • Health Monitoring               │    │
-│  │  • Failover Logic                  │    │
-│  │  • Cache Manager (LRU + Redis)     │    │
-│  └────────────┬───────────────────────┘    │
-└───────────────┼──────────────────────────────┘
-                │
-      ┌─────────┼──────────┐
-      │         │          │
-      ┌──────────┼──────────┐
-      │          │          │
-┌─────▼───┐ ┌───▼─────┐   │
-│Anthropic│ │ Google  │   │
-│Provider │ │Provider │   │
-│ (Claude)│ │(Gemini) │   │
-└────┬────┘ └───┬─────┘   │
-     │          │          │
-     │   Request/Response  │
-     │    Transformation   │
-     │          │          │
-┌────▼──────────▼──────────▼───┐
-│   External Provider APIs     │
-│   • api.anthropic.com        │
-│   • generativelanguage.googleapis.com │
-└──────────────────────────────┘
+┌──────────────────────────────────────────────────────────┐
+│                  Application Layer                       │
+│              (Your Application Code)                     │
+└────────────────────────┬─────────────────────────────────┘
+                         │
+┌────────────────────────▼─────────────────────────────────┐
+│              ConnectorHub (Orchestrator)                 │
+│  ┌───────────────────────────────────────────────┐      │
+│  │         Middleware Pipeline                   │      │
+│  │  • Retry (exponential backoff)                │      │
+│  │  • Rate Limiting (token bucket)               │      │
+│  │  • Circuit Breaker (3-state)                  │      │
+│  │  • Logging (structured)                       │      │
+│  │  • Metrics (Prometheus)                       │      │
+│  └────────────────────┬──────────────────────────┘      │
+│                       │                                  │
+│  ┌────────────────────▼──────────────────────────┐      │
+│  │           Provider Registry                   │      │
+│  │  • Smart Selection (6 strategies)             │      │
+│  │  • Health Monitoring                          │      │
+│  │  • Failover Logic                             │      │
+│  │  • Cache Manager (LRU + Redis)                │      │
+│  └────────────────────┬──────────────────────────┘      │
+└───────────────────────┼──────────────────────────────────┘
+                        │
+      ┌─────────────────┼─────────────────┐
+      │                 │                 │
+┌─────▼──────┐  ┌──────▼──────┐  ┌──────▼──────┐
+│   OpenAI   │  │  Anthropic  │  │  Google AI  │
+│  Provider  │  │  Provider   │  │  Provider   │
+│ (GPT-5/4o) │  │  (Claude)   │  │  (Gemini)   │
+└─────┬──────┘  └──────┬──────┘  └──────┬──────┘
+      │                │                 │
+┌─────▼──────┐  ┌──────▼──────┐         │
+│   Azure    │  │AWS Bedrock  │         │
+│  OpenAI    │  │  Provider   │         │
+│  Provider  │  │(Multi-model)│         │
+└─────┬──────┘  └──────┬──────┘         │
+      │                │                 │
+      │    Request/Response              │
+      │      Transformation              │
+      │                │                 │
+┌─────▼────────────────▼─────────────────▼──────┐
+│         External Provider APIs                │
+│   • api.openai.com                            │
+│   • *.openai.azure.com                        │
+│   • bedrock-runtime.*.amazonaws.com           │
+│   • api.anthropic.com                         │
+│   • generativelanguage.googleapis.com         │
+└───────────────────────────────────────────────┘
 ```
 
 ---
@@ -244,8 +359,24 @@ const response = await hub.complete(request);
 Switch between providers seamlessly based on cost, latency, or availability:
 
 ```typescript
+import { OpenAI, Anthropic, Google, Azure, Bedrock } from '@llm-dev-ops/connector-hub-providers';
+
 const hub = new ConnectorHub({
-  providers: { anthropic, google },
+  providers: {
+    openai: OpenAI.createOpenAIProvider({ apiKey: process.env.OPENAI_API_KEY! }),
+    anthropic: Anthropic.createAnthropicProvider({ apiKey: process.env.ANTHROPIC_API_KEY! }),
+    google: Google.createGoogleProvider({ apiKey: process.env.GOOGLE_API_KEY! }),
+    azure: Azure.createAzureProvider({
+      apiKey: process.env.AZURE_OPENAI_API_KEY!,
+      resourceName: process.env.AZURE_RESOURCE_NAME!,
+      deploymentName: 'gpt-4o-deployment',
+    }),
+    bedrock: Bedrock.createBedrockProvider({
+      region: 'us-east-1',
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+    }),
+  },
   selector: {
     type: 'cost-optimized', // Automatically select cheapest provider
   },
@@ -254,12 +385,24 @@ const hub = new ConnectorHub({
 
 ### 2. High-Availability Services
 
-Automatic failover ensures continuous service:
+Automatic failover ensures continuous service across multiple providers:
 
 ```typescript
 const hub = new ConnectorHub({
-  providers: { primary: anthropic, backup: google },
-  selector: { type: 'failover' },
+  providers: {
+    primary: OpenAI.createOpenAIProvider({ apiKey: process.env.OPENAI_API_KEY! }),
+    secondary: Anthropic.createAnthropicProvider({ apiKey: process.env.ANTHROPIC_API_KEY! }),
+    tertiary: Bedrock.createBedrockProvider({
+      region: 'us-east-1',
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+    }),
+  },
+  selector: {
+    type: 'failover',
+    primary: 'primary',
+    fallback: 'secondary',
+  },
   middleware: [
     new RetryMiddleware({ maxAttempts: 3 }),
     new CircuitBreakerMiddleware({ threshold: 5 }),
@@ -340,9 +483,14 @@ For detailed benchmarks, see [PERFORMANCE_RESULTS.md](./PERFORMANCE_RESULTS.md).
 ### Provider Configuration
 
 ```typescript
-import { Anthropic, Google } from '@llm-dev-ops/connector-hub-providers';
+import { OpenAI, Anthropic, Google, Azure, Bedrock } from '@llm-dev-ops/connector-hub-providers';
 
 const providers = {
+  openai: OpenAI.createOpenAIProvider({
+    apiKey: process.env.OPENAI_API_KEY!,
+    timeout: 60000,
+  }),
+
   anthropic: Anthropic.createAnthropicProvider({
     apiKey: process.env.ANTHROPIC_API_KEY!,
     timeout: 60000,
@@ -350,6 +498,20 @@ const providers = {
 
   google: Google.createGoogleProvider({
     apiKey: process.env.GOOGLE_API_KEY!,
+    timeout: 60000,
+  }),
+
+  azure: Azure.createAzureProvider({
+    apiKey: process.env.AZURE_OPENAI_API_KEY!,
+    resourceName: process.env.AZURE_RESOURCE_NAME!,
+    deploymentName: process.env.AZURE_DEPLOYMENT_NAME!,
+    timeout: 60000,
+  }),
+
+  bedrock: Bedrock.createBedrockProvider({
+    region: process.env.AWS_REGION || 'us-east-1',
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
     timeout: 60000,
   }),
 };
@@ -393,9 +555,28 @@ const hub = new ConnectorHub({
 ### Environment Variables
 
 ```bash
-# Provider API Keys
+# OpenAI
+OPENAI_API_KEY=sk-...
+
+# Anthropic
 ANTHROPIC_API_KEY=sk-ant-...
+
+# Google AI
 GOOGLE_API_KEY=...
+
+# Azure OpenAI
+AZURE_OPENAI_API_KEY=...
+AZURE_RESOURCE_NAME=your-resource-name
+AZURE_DEPLOYMENT_NAME=gpt-4o-deployment
+# Or use endpoint URL:
+AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com
+
+# AWS Bedrock
+AWS_REGION=us-east-1
+AWS_ACCESS_KEY_ID=...
+AWS_SECRET_ACCESS_KEY=...
+# Or use AWS profile:
+AWS_PROFILE=default
 
 # Optional Configuration
 LLM_CONNECTOR_CACHE_TYPE=memory
@@ -449,6 +630,13 @@ docker build -t llm-connector-hub .
 docker run -p 8080:8080 \
   -e OPENAI_API_KEY=sk-... \
   -e ANTHROPIC_API_KEY=sk-ant-... \
+  -e GOOGLE_API_KEY=... \
+  -e AZURE_OPENAI_API_KEY=... \
+  -e AZURE_RESOURCE_NAME=... \
+  -e AZURE_DEPLOYMENT_NAME=... \
+  -e AWS_REGION=us-east-1 \
+  -e AWS_ACCESS_KEY_ID=... \
+  -e AWS_SECRET_ACCESS_KEY=... \
   llm-connector-hub
 ```
 
@@ -552,29 +740,35 @@ npm run type-check
 ## 📈 Roadmap
 
 ### Current Version (v0.1.0) ✅
-- ✅ Anthropic (Claude) provider
-- ✅ Google AI (Gemini) provider
-- ✅ Streaming support
+- ✅ OpenAI provider (GPT-5, GPT-5.1, GPT-4o, GPT-4o-mini, GPT-4 Turbo)
+- ✅ Anthropic (Claude) provider (Claude 3.5 Sonnet, Claude 3 Opus/Sonnet/Haiku)
+- ✅ Google AI (Gemini) provider (Gemini 1.5 Pro/Flash, Gemini 1.0 Pro)
+- ✅ Azure OpenAI provider (all GPT models via deployments)
+- ✅ AWS Bedrock provider (Claude, Llama, Titan, Command, Mistral)
+- ✅ Streaming support for all providers
 - ✅ Multi-provider failover
 - ✅ Caching (Memory + Redis)
-- ✅ Middleware pipeline
+- ✅ Middleware pipeline (retry, circuit breaker, rate limiting)
 - ✅ Health monitoring
 - ✅ Comprehensive documentation
+- ✅ Function/tool calling support
+- ✅ Vision/multimodal support
 
 ### v0.2.0 (Q1 2025)
-- [ ] OpenAI provider
-- [ ] AWS Bedrock provider
-- [ ] Azure OpenAI provider
 - [ ] Request batching
-- [ ] Advanced analytics
-- [ ] WebSocket support
+- [ ] Advanced analytics dashboard
+- [ ] WebSocket support for real-time streaming
+- [ ] Enhanced cost tracking and optimization
+- [ ] Model performance comparison tools
+- [ ] Additional Bedrock models (Mistral, Cohere)
 
 ### v1.0.0 (Q2 2025)
 - [ ] Plugin marketplace
 - [ ] Custom provider SDK
-- [ ] Advanced load balancing
-- [ ] Multi-region support
-- [ ] Enterprise features (SSO, audit logs)
+- [ ] Advanced load balancing strategies
+- [ ] Multi-region support with geo-routing
+- [ ] Enterprise features (SSO, audit logs, RBAC)
+- [ ] GraphQL API support
 
 For detailed roadmap, see [IMPLEMENTATION_ROADMAP.md](./IMPLEMENTATION_ROADMAP.md).
 
