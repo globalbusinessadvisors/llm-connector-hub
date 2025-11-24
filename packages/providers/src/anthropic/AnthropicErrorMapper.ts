@@ -12,7 +12,7 @@
  * }
  */
 
-import type { ErrorType } from '@llm-connector-hub/core';
+import type { ErrorType } from '@llm-dev-ops/connector-hub-core';
 
 /**
  * Anthropic error response format

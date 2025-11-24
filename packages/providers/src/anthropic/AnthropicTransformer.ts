@@ -15,7 +15,7 @@ import type {
   Usage,
   StreamChunk,
   ToolCall,
-} from '@llm-connector-hub/core';
+} from '@llm-dev-ops/connector-hub-core';
 
 /**
  * Anthropic API message format

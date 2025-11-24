@@ -10,7 +10,7 @@ import type {
   MiddlewareContext,
   NextFunction,
   CompletionResponse,
-} from '@llm-connector-hub/core';
+} from '@llm-dev-ops/connector-hub-core';
 
 /**
  * Retry strategy types

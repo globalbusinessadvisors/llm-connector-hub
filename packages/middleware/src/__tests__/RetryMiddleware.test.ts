@@ -1,6 +1,6 @@
 import { RetryMiddleware, RetryStrategy } from '../retry';
 import { createContext } from '../pipeline';
-import { CompletionRequest, CompletionResponse } from '@llm-connector-hub/core';
+import { CompletionRequest, CompletionResponse } from '@llm-dev-ops/connector-hub-core';
 
 describe('RetryMiddleware', () => {
   const mockRequest: CompletionRequest = {

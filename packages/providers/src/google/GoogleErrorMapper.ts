@@ -5,7 +5,7 @@
  * Handles HTTP status codes, API error responses, and network errors.
  */
 
-import type { ErrorType } from '@llm-connector-hub/core';
+import type { ErrorType } from '@llm-dev-ops/connector-hub-core';
 
 /**
  * Google AI API error response structure

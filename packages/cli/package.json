@@ -1,44 +1,56 @@
 {
-  "name": "@llm-dev-ops/connector-hub",
+  "name": "@llm-dev-ops/connector-hub-cli",
   "version": "0.1.0",
-  "description": "Orchestrator for managing LLM providers and middleware",
+  "description": "Command-line interface for LLM Connector Hub",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "bin": {
+    "llm-hub": "./bin/llm-hub.js"
+  },
   "publishConfig": {
     "access": "public"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/globalbusinessadvisors/llm-connector-hub",
-    "directory": "packages/hub"
+    "directory": "packages/cli"
   },
   "scripts": {
-    "build": "tsc -b",
+    "build": "tsc -b && chmod +x bin/llm-hub.js",
     "clean": "rm -rf dist *.tsbuildinfo",
     "test": "vitest",
     "typecheck": "tsc --noEmit"
   },
   "keywords": [
     "llm",
-    "hub",
-    "orchestrator"
+    "cli",
+    "command-line",
+    "openai",
+    "anthropic",
+    "google-ai"
   ],
   "license": "MIT OR Apache-2.0",
   "dependencies": {
     "@llm-dev-ops/connector-hub-core": "^0.1.0",
+    "@llm-dev-ops/connector-hub": "^0.1.0",
     "@llm-dev-ops/connector-hub-middleware": "^0.1.0",
     "@llm-dev-ops/connector-hub-providers": "^0.1.0",
-    "pino": "^8.16.2",
-    "zod": "^3.22.4"
+    "commander": "^11.1.0",
+    "chalk": "^4.1.2",
+    "ora": "^5.4.1",
+    "inquirer": "^8.2.6",
+    "dotenv": "^16.3.1"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",
+    "@types/inquirer": "^8.2.10",
     "typescript": "^5.3.3",
     "vitest": "^1.0.0"
   },
   "files": [
     "dist",
-    "src"
+    "bin",
+    "README.md"
   ],
   "exports": {
     ".": {

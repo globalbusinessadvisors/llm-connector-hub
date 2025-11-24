@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import type { Message, ToolCall } from '@llm-connector-hub/core';
+import type { Message, ToolCall } from '@llm-dev-ops/connector-hub-core';
 import {
   transformMessages,
   transformTools,

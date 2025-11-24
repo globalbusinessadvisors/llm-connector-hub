@@ -13,7 +13,7 @@ import type {
   FinishReason,
   ProviderCapabilities,
   ProviderMetadata,
-} from '@llm-connector-hub/core';
+} from '@llm-dev-ops/connector-hub-core';
 
 // Local type declaration for FunctionDefinition
 type FunctionDefinition = {

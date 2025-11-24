@@ -10,7 +10,7 @@ import {
   StreamAccumulator,
   ensureMaxTokens,
 } from '../AnthropicTransformer';
-import type { Message } from '@llm-connector-hub/core';
+import type { Message } from '@llm-dev-ops/connector-hub-core';
 import type { AnthropicResponse, AnthropicStreamEvent } from '../AnthropicTransformer';
 
 describe('AnthropicTransformer', () => {

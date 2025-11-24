@@ -77,28 +77,56 @@ LLM Connector Hub provides a **unified, type-safe interface** for interacting wi
 
 ### Installation
 
+#### Option 1: Install the Complete Hub (Recommended)
+
 ```bash
-npm install @llm-connector-hub/core @llm-connector-hub/providers @llm-connector-hub/hub
+npm install @llm-dev-ops/connector-hub
 ```
+
+#### Option 2: Install Individual Packages
+
+```bash
+# Core package
+npm install @llm-dev-ops/connector-hub-core
+
+# Providers package
+npm install @llm-dev-ops/connector-hub-providers
+
+# Middleware package
+npm install @llm-dev-ops/connector-hub-middleware
+
+# CLI tool (global)
+npm install -g @llm-dev-ops/connector-hub-cli
+```
+
+### Available Packages
+
+| Package | Description | Install Command |
+|---------|-------------|-----------------|
+| **@llm-dev-ops/connector-hub-core** | Core interfaces and types | `npm install @llm-dev-ops/connector-hub-core` |
+| **@llm-dev-ops/connector-hub-providers** | Anthropic & Google AI providers | `npm install @llm-dev-ops/connector-hub-providers` |
+| **@llm-dev-ops/connector-hub-middleware** | Middleware components | `npm install @llm-dev-ops/connector-hub-middleware` |
+| **@llm-dev-ops/connector-hub** | Complete orchestration layer | `npm install @llm-dev-ops/connector-hub` |
+| **@llm-dev-ops/connector-hub-cli** | Command-line interface | `npm install -g @llm-dev-ops/connector-hub-cli` |
 
 ### Basic Usage
 
 ```typescript
-import { ConnectorHub } from '@llm-connector-hub/hub';
-import { OpenAIProvider } from '@llm-connector-hub/providers';
+import { ConnectorHub } from '@llm-dev-ops/connector-hub';
+import { Anthropic } from '@llm-dev-ops/connector-hub-providers';
 
 // Initialize the hub
 const hub = new ConnectorHub({
   providers: {
-    openai: new OpenAIProvider({
-      apiKey: process.env.OPENAI_API_KEY!,
+    anthropic: Anthropic.createAnthropicProvider({
+      apiKey: process.env.ANTHROPIC_API_KEY!,
     }),
   },
 });
 
 // Send a completion request
 const response = await hub.complete({
-  model: 'gpt-4',
+  model: 'claude-3-sonnet-20240229',
   messages: [
     { role: 'system', content: 'You are a helpful assistant.' },
     { role: 'user', content: 'Explain quantum computing in simple terms.' },
@@ -127,22 +155,21 @@ for await (const chunk of hub.stream({
 ### Multi-Provider with Failover
 
 ```typescript
-import { AnthropicProvider, GoogleProvider } from '@llm-connector-hub/providers';
+import { Anthropic, Google } from '@llm-dev-ops/connector-hub-providers';
 
 const hub = new ConnectorHub({
   providers: {
-    openai: new OpenAIProvider({ apiKey: process.env.OPENAI_API_KEY! }),
-    anthropic: new AnthropicProvider({ apiKey: process.env.ANTHROPIC_API_KEY! }),
-    google: new GoogleProvider({ apiKey: process.env.GOOGLE_API_KEY! }),
+    anthropic: Anthropic.createAnthropicProvider({ apiKey: process.env.ANTHROPIC_API_KEY! }),
+    google: Google.createGoogleProvider({ apiKey: process.env.GOOGLE_API_KEY! }),
   },
   selector: {
     type: 'failover',
-    primary: 'openai',
-    fallback: 'anthropic',
+    primary: 'anthropic',
+    fallback: 'google',
   },
 });
 
-// Automatically fails over to Anthropic if OpenAI is unavailable
+// Automatically fails over to Google if Anthropic is unavailable
 const response = await hub.complete(request);
 ```
 
@@ -152,9 +179,9 @@ const response = await hub.complete(request);
 
 | Provider | Status | Streaming | Function Calling | Vision | Performance |
 |----------|--------|-----------|------------------|--------|-------------|
-| **OpenAI** | ✅ Production | ✅ | ✅ | ✅ | 0.59μs (1.6M ops/s) |
 | **Anthropic** | ✅ Production | ✅ | ✅ | ✅ | 1.18μs (860K ops/s) |
 | **Google AI** | ✅ Production | ✅ | ✅ | ✅ | 1.28μs (993K ops/s) |
+| OpenAI | 🔜 Planned | - | - | - | - |
 | AWS Bedrock | 🔜 Planned | - | - | - | - |
 | Azure OpenAI | 🔜 Planned | - | - | - | - |
 
@@ -190,21 +217,22 @@ const response = await hub.complete(request);
                 │
       ┌─────────┼──────────┐
       │         │          │
-┌─────▼───┐ ┌──▼────┐ ┌──▼──────┐
-│ OpenAI  │ │Anthropic│ │ Google │
-│Provider │ │Provider │ │Provider│
-│         │ │ (Claude)│ │(Gemini)│
-└────┬────┘ └───┬────┘ └───┬────┘
-     │          │           │
-     │   Request/Response   │
-     │    Transformation    │
-     │          │           │
-┌────▼──────────▼───────────▼────┐
-│   External Provider APIs       │
-│   • api.openai.com             │
-│   • api.anthropic.com          │
+      ┌──────────┼──────────┐
+      │          │          │
+┌─────▼───┐ ┌───▼─────┐   │
+│Anthropic│ │ Google  │   │
+│Provider │ │Provider │   │
+│ (Claude)│ │(Gemini) │   │
+└────┬────┘ └───┬─────┘   │
+     │          │          │
+     │   Request/Response  │
+     │    Transformation   │
+     │          │          │
+┌────▼──────────▼──────────▼───┐
+│   External Provider APIs     │
+│   • api.anthropic.com        │
 │   • generativelanguage.googleapis.com │
-└────────────────────────────────┘
+└──────────────────────────────┘
 ```
 
 ---
@@ -217,7 +245,7 @@ Switch between providers seamlessly based on cost, latency, or availability:
 
 ```typescript
 const hub = new ConnectorHub({
-  providers: { openai, anthropic, google },
+  providers: { anthropic, google },
   selector: {
     type: 'cost-optimized', // Automatically select cheapest provider
   },
@@ -230,7 +258,7 @@ Automatic failover ensures continuous service:
 
 ```typescript
 const hub = new ConnectorHub({
-  providers: { primary: openai, backup: anthropic },
+  providers: { primary: anthropic, backup: google },
   selector: { type: 'failover' },
   middleware: [
     new RetryMiddleware({ maxAttempts: 3 }),
@@ -245,7 +273,7 @@ Reduce API costs by 70-90% with intelligent caching:
 
 ```typescript
 const hub = new ConnectorHub({
-  providers: { openai },
+  providers: { anthropic },
   cache: {
     type: 'memory',
     maxSize: 1000,
@@ -265,10 +293,10 @@ const response2 = await hub.complete(request); // <2μs from cache
 Full observability out of the box:
 
 ```typescript
-import { LoggingMiddleware, MetricsMiddleware } from '@llm-connector-hub/middleware';
+import { LoggingMiddleware, MetricsMiddleware } from '@llm-dev-ops/connector-hub-middleware';
 
 const hub = new ConnectorHub({
-  providers: { openai },
+  providers: { anthropic },
   middleware: [
     new LoggingMiddleware({ level: 'info' }),
     new MetricsMiddleware({ port: 9090 }), // Prometheus metrics
@@ -283,8 +311,7 @@ const hub = new ConnectorHub({
 ### Benchmark Results (Actual)
 
 **Provider Transformation Overhead**:
-- OpenAI: **0.59μs** (1.6M ops/s) 🥇
-- Anthropic: **1.18μs** (860K ops/s)
+- Anthropic: **1.18μs** (860K ops/s) 🥇
 - Google: **1.28μs** (993K ops/s)
 
 **Cache Performance**:
@@ -313,22 +340,15 @@ For detailed benchmarks, see [PERFORMANCE_RESULTS.md](./PERFORMANCE_RESULTS.md).
 ### Provider Configuration
 
 ```typescript
-import { OpenAIProvider, AnthropicProvider, GoogleProvider } from '@llm-connector-hub/providers';
+import { Anthropic, Google } from '@llm-dev-ops/connector-hub-providers';
 
 const providers = {
-  openai: new OpenAIProvider({
-    apiKey: process.env.OPENAI_API_KEY!,
-    organization: process.env.OPENAI_ORG,
-    timeout: 60000,
-    maxRetries: 3,
-  }),
-
-  anthropic: new AnthropicProvider({
+  anthropic: Anthropic.createAnthropicProvider({
     apiKey: process.env.ANTHROPIC_API_KEY!,
     timeout: 60000,
   }),
 
-  google: new GoogleProvider({
+  google: Google.createGoogleProvider({
     apiKey: process.env.GOOGLE_API_KEY!,
     timeout: 60000,
   }),
@@ -374,12 +394,10 @@ const hub = new ConnectorHub({
 
 ```bash
 # Provider API Keys
-OPENAI_API_KEY=sk-...
 ANTHROPIC_API_KEY=sk-ant-...
 GOOGLE_API_KEY=...
 
 # Optional Configuration
-OPENAI_ORG=org-...
 LLM_CONNECTOR_CACHE_TYPE=memory
 LLM_CONNECTOR_LOG_LEVEL=info
 ```
@@ -534,7 +552,8 @@ npm run type-check
 ## 📈 Roadmap
 
 ### Current Version (v0.1.0) ✅
-- ✅ OpenAI, Anthropic, Google AI providers
+- ✅ Anthropic (Claude) provider
+- ✅ Google AI (Gemini) provider
 - ✅ Streaming support
 - ✅ Multi-provider failover
 - ✅ Caching (Memory + Redis)
@@ -543,6 +562,7 @@ npm run type-check
 - ✅ Comprehensive documentation
 
 ### v0.2.0 (Q1 2025)
+- [ ] OpenAI provider
 - [ ] AWS Bedrock provider
 - [ ] Azure OpenAI provider
 - [ ] Request batching

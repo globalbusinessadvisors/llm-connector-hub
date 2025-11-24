@@ -1,5 +1,5 @@
 import { Pipeline } from '../pipeline';
-import { IMiddleware, MiddlewareContext, NextFunction, CompletionResponse } from '@llm-connector-hub/core';
+import { IMiddleware, MiddlewareContext, NextFunction, CompletionResponse } from '@llm-dev-ops/connector-hub-core';
 import { createContext } from '../pipeline';
 
 // Mock middleware for testing

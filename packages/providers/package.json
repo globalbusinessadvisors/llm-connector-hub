@@ -1,9 +1,17 @@
 {
-  "name": "@llm-connector-hub/providers",
+  "name": "@llm-dev-ops/connector-hub-providers",
   "version": "0.1.0",
-  "description": "LLM provider implementations (OpenAI, Anthropic, etc.)",
+  "description": "LLM provider implementations (OpenAI, Anthropic, Google AI)",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/globalbusinessadvisors/llm-connector-hub",
+    "directory": "packages/providers"
+  },
   "scripts": {
     "build": "tsc -b",
     "clean": "rm -rf dist *.tsbuildinfo",
@@ -18,7 +26,7 @@
   ],
   "license": "MIT OR Apache-2.0",
   "dependencies": {
-    "@llm-connector-hub/core": "^0.1.0",
+    "@llm-dev-ops/connector-hub-core": "^0.1.0",
     "axios": "^1.6.2",
     "pino": "^8.16.2",
     "zod": "^3.22.4"

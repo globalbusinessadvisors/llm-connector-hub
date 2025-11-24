@@ -6,6 +6,9 @@
   "workspaces": [
     "packages/*"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "npm run build --workspaces --if-present",
     "test": "vitest",
@@ -27,7 +30,13 @@
     "bench:save": "npm run bench -- all --save",
     "bench:analyze": "tsx scripts/performance/analyze-results.ts",
     "perf": "bash scripts/performance/run-benchmarks.sh",
-    "perf:load": "bash scripts/performance/run-load-tests.sh"
+    "perf:load": "bash scripts/performance/run-load-tests.sh",
+    "prepublish": "npm run build && npm test",
+    "publish:all": "npm publish --workspace=packages/core && npm publish --workspace=packages/providers && npm publish --workspace=packages/middleware && npm publish --workspace=packages/hub && npm publish --workspace=packages/cli",
+    "publish:dry-run": "npm publish --dry-run --workspace=packages/core && npm publish --dry-run --workspace=packages/providers && npm publish --dry-run --workspace=packages/middleware && npm publish --dry-run --workspace=packages/hub && npm publish --dry-run --workspace=packages/cli",
+    "version:patch": "npm version patch --workspaces --no-git-tag-version",
+    "version:minor": "npm version minor --workspaces --no-git-tag-version",
+    "version:major": "npm version major --workspaces --no-git-tag-version"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",
@@ -51,7 +60,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-org/llm-connector-hub"
+    "url": "https://github.com/globalbusinessadvisors/llm-connector-hub"
   },
   "keywords": [
     "llm",

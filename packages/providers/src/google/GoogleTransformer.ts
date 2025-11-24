@@ -16,7 +16,7 @@ import type {
   FinishReason,
   Usage,
   StreamChunk,
-} from '@llm-connector-hub/core';
+} from '@llm-dev-ops/connector-hub-core';
 
 // Re-declare types that may not be exported from core
 type ToolCall = {

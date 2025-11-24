@@ -12,7 +12,7 @@ import type {
   NextFunction,
   CompletionRequest,
   CompletionResponse,
-} from '@llm-connector-hub/core';
+} from '@llm-dev-ops/connector-hub-core';
 
 /**
  * Options for adding middleware to the pipeline
@@ -77,7 +77,7 @@ export class Pipeline {
 
     // Initialize middleware if it has an initialize method
     if (middleware.initialize) {
-      middleware.initialize().catch((error) => {
+      middleware.initialize().catch((error: unknown) => {
         console.error(`Failed to initialize middleware ${middleware.name}:`, error);
       });
     }
@@ -99,7 +99,7 @@ export class Pipeline {
 
     // Cleanup middleware if it has a cleanup method
     if (entry.middleware.cleanup) {
-      entry.middleware.cleanup().catch((error) => {
+      entry.middleware.cleanup().catch((error: unknown) => {
         console.error(`Failed to cleanup middleware ${name}:`, error);
       });
     }
@@ -167,7 +167,7 @@ export class Pipeline {
     // Cleanup all middleware
     for (const entry of this.middleware.values()) {
       if (entry.middleware.cleanup) {
-        entry.middleware.cleanup().catch((error) => {
+        entry.middleware.cleanup().catch((error: unknown) => {
           console.error(`Failed to cleanup middleware ${entry.middleware.name}:`, error);
         });
       }

@@ -1,9 +1,17 @@
 {
-  "name": "@llm-connector-hub/core",
+  "name": "@llm-dev-ops/connector-hub-core",
   "version": "0.1.0",
   "description": "Core interfaces, types, and models for LLM Connector Hub",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/globalbusinessadvisors/llm-connector-hub",
+    "directory": "packages/core"
+  },
   "scripts": {
     "build": "tsc -b",
     "clean": "rm -rf dist *.tsbuildinfo",
