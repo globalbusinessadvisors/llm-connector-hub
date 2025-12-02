@@ -1,0 +1,38 @@
+[package]
+name = "connector-hub-benchmarks"
+version = "0.1.0"
+edition = "2021"
+authors = ["LLM-Dev-Ops Team"]
+description = "Canonical benchmark suite for LLM Connector Hub - TS/Rust bridging benchmarks"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/LLM-Dev-Ops/connector-hub"
+keywords = ["benchmarks", "llm", "connector-hub", "performance"]
+categories = ["development-tools::profiling"]
+
+[lib]
+name = "connector_hub_benchmarks"
+path = "src/lib.rs"
+
+[[bin]]
+name = "run_benchmarks"
+path = "src/bin/run_benchmarks.rs"
+
+[dependencies]
+chrono = { version = "0.4", features = ["serde"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tokio = { version = "1.0", features = ["full", "process", "time"] }
+anyhow = "1.0"
+thiserror = "1.0"
+async-trait = "0.1"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+clap = { version = "4.0", features = ["derive"] }
+
+[dev-dependencies]
+criterion = "0.5"
+tempfile = "3.0"
+
+[[bench]]
+name = "connector_benchmarks"
+harness = false
